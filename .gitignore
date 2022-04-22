@@ -41,3 +41,4 @@ sysinfo.txt
 *.meta
 Logs/*
 UserSettings/*
+*.log
