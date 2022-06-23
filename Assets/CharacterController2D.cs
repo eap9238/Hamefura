@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class CharacterController2D : MonoBehaviour
 {
-    private Vector3 acceleration;
-    private Vector3 velocity;
+    private Vector2 acceleration;
+    private Vector2 velocity;
+    private bool moveKey;
+    private int direction = 4;
+
     public float maxSpeed = 10f;
+    public float minSpeed = .01f;
     public float traction = .975f;
 
     public Animator animator;
@@ -15,36 +19,93 @@ public class CharacterController2D : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        velocity = new Vector3();
+        velocity = new Vector2();
+    }
+
+    void CheckDirection()
+    {
+        float angle = Vector2.Dot(velocity.normalized, Vector2.up);
+
+        if (angle > .75)
+        {
+            direction = 0;
+        }
+        else if (angle > .25)
+        {
+            direction = 1;
+        }
+        else if (angle > -.25)
+        {
+            direction = 2;
+        }
+        else if (angle > -.75)
+        {
+            direction = 3;
+        }
+        else
+        {
+            direction = 4;
+        }
+        
+        if (velocity.x > 0f)
+        {
+            direction = (8 - direction) % 8;
+        }
+    }
+
+    void AnimateCharacter()
+    {
+        string actionName = "";
+
+        if (!moveKey)
+        {
+            if (velocity.magnitude < minSpeed)
+            {
+                actionName = "Stand";
+            }
+            else
+            {
+                actionName = "Run"; //Later skid?
+            }
+        }
+        else
+        {
+            actionName = "Run";
+            CheckDirection();
+        }
+
+        actionName += "_" + direction;
+
+        animator.Play(actionName);
+        sprite.flipX = (direction > 4); // Only use if you mirror
+        animator.speed = velocity.magnitude / maxSpeed;
     }
 
     // Update is called once per frame
     void Update()
     {
-        acceleration = new Vector3();
+        acceleration = new Vector2();
+        moveKey = false;
 
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
         {
-            acceleration += new Vector3(0, 1, 0);
+            acceleration += new Vector2(0, 1);
+            moveKey = true;
         }
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
         {
-            acceleration += new Vector3(-1, 0, 0);
+            acceleration += new Vector2(-1, 0);
+            moveKey = true;
         }
         if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
         {
-            acceleration += new Vector3(0, -1, 0);
+            acceleration += new Vector2(0, -1);
+            moveKey = true;
         }
         if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
         {
-            acceleration += new Vector3(1, 0, 0);
-        }
-
-        //Cheap animator -- probably wants their own script?
-        if (velocity.x < -.1f || velocity.x > .1f)
-        {
-            animator.Play("Run_H");
-            sprite.flipX = (velocity.x > 0f);
+            acceleration += new Vector2(1, 0);
+            moveKey = true;
         }
 
         velocity *= traction;
@@ -54,13 +115,14 @@ public class CharacterController2D : MonoBehaviour
         {
             velocity = velocity.normalized * maxSpeed;
         }
-        if (velocity.magnitude < .01f && velocity.magnitude > 0)
+
+        if (velocity.magnitude < minSpeed && velocity.magnitude > 0)
         {
-            animator.Play("Stand_H");
-            velocity = new Vector3();
+            velocity = new Vector2();
         }
 
-        transform.position += velocity * Time.deltaTime;
+        transform.position += (Vector3)velocity * Time.deltaTime;
+        AnimateCharacter();
     }
 
 
