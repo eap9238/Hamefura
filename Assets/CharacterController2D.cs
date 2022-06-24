@@ -84,30 +84,11 @@ public class CharacterController2D : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        acceleration = new Vector2();
-        moveKey = false;
-
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-        {
-            acceleration += new Vector2(0, 1);
-            moveKey = true;
-        }
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-        {
-            acceleration += new Vector2(-1, 0);
-            moveKey = true;
-        }
-        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
-        {
-            acceleration += new Vector2(0, -1);
-            moveKey = true;
-        }
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-        {
-            acceleration += new Vector2(1, 0);
-            moveKey = true;
-        }
-
+        float x = Input.GetAxis("Horizontal");
+        float y = Input.GetAxis("Vertical");
+        acceleration = new Vector2(x, y);
+        moveKey = acceleration.magnitude > 0;
+        
         velocity *= traction;
         velocity += acceleration;
 
